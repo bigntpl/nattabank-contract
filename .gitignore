@@ -3,9 +3,26 @@ node_modules
 coverage
 coverage.json
 typechain
-typechain-types
+compiled-typechain
+.vscode
 
 #Hardhat files
 cache
 artifacts
+__pycache__
 
+# IDEs
+.vscode/
+.idea/
+
+.openzeppelin/unknown-31337.json
+.openzeppelin/mainnet_fork*
+.env.deployer
+deployments
+deployer-key.json
+yarn-error.log
+.DS_Store
+compiled-typechain/
+cache/
+out/
+compiled-foundry-ffi/
