@@ -1,0 +1,20 @@
+{
+  "[solidity]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "solidity.packageDefaultDependenciesContractsDirectory": "src",
+  "solidity.packageDefaultDependenciesDirectory": "lib",
+  "[typescript]": {
+    "editor.formatOnSave": true
+  },
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "python.linting.enabled": true,
+  "cSpell.enableFiletypes": ["!yaml", "!yml", "!toml", "!txt"],
+  "editor.tabSize": 2,
+  "solidity.compileUsingRemoteVersion": "v0.8.14+commit.80d49f37"
+}
