@@ -5,8 +5,8 @@ pragma solidity 0.8.14;
 import "./NattaBankBaseTest.t.sol";
 
 // solhint-disable
-contract NattaBank_TestDeposit is NattaBankBaseTest {
-  event Deposit(string accountName, uint256 amount);
+contract NattaBank_TestWithdraw is NattaBankBaseTest {
+  event Withdraw(string accountName, uint256 amount);
 
   /// @dev foundry's setUp method
   function setUp() public override {
@@ -20,158 +20,193 @@ contract NattaBank_TestDeposit is NattaBankBaseTest {
     vm.stopPrank();
   }
 
-  function test_WhenDepositSuccess() external {
-    uint256 depositAmount = 500e18;
+  function test_WhenWithdrawSuccess() external {
+    uint256 withdrawalAmount = 500e18;
     string memory accountName = "Account 1";
 
-    (, uint256 accountInfoAmountBeforeDeposit) = nattaBank.accountInfo(
+    // Prepare test scenario:
+    // assuming the deposit function working properly
+    // Pretend to be Alice and deposit to the account
+    vm.startPrank(ALICE);
+    erc20Token.approve(address(nattaBank), 10000e18);
+    nattaBank.deposit(10000e18, accountName);
+    vm.stopPrank();
+
+    (, uint256 accountInfoAmountBeforeWithdrawal) = nattaBank.accountInfo(
       ALICE,
       0
     );
-    uint256 amountInWalletBeforeDeposit = erc20Token.balanceOf(ALICE);
-    uint256 allBalanceBeforeDeposit = nattaBank.allBalance();
+    uint256 amountInWalletBeforeWithdrawal = erc20Token.balanceOf(ALICE);
+    uint256 allBalanceBeforeWithdrawal = nattaBank.allBalance();
 
-    // Pretend to be Alice and deposit erc20Token
+    // Pretend to be Alice and withdraw with 500 Tokens
     vm.startPrank(ALICE);
-    erc20Token.approve(address(nattaBank), depositAmount);
     vm.expectEmit(true, true, true, true);
-    emit Deposit(accountName, depositAmount);
-    nattaBank.deposit(depositAmount, accountName);
+    emit Withdraw(accountName, withdrawalAmount);
+    nattaBank.withdraw(withdrawalAmount, accountName);
     vm.stopPrank();
 
-    (, uint256 accountInfoAmountAfterDeposit) = nattaBank.accountInfo(ALICE, 0);
-    uint256 amountInWalletAfterDeposit = erc20Token.balanceOf(ALICE);
-    uint256 allBalanceAfterDeposit = nattaBank.allBalance();
+    (, uint256 accountInfoAmountAfterWithdrawal) = nattaBank.accountInfo(
+      ALICE,
+      0
+    );
+    uint256 amountInWalletAfterWithdrawal = erc20Token.balanceOf(ALICE);
+    uint256 allBalanceAfterWithdrawal = nattaBank.allBalance();
 
     assertEq(
-      accountInfoAmountAfterDeposit,
-      accountInfoAmountBeforeDeposit + depositAmount
+      accountInfoAmountAfterWithdrawal,
+      accountInfoAmountBeforeWithdrawal - withdrawalAmount
     );
     assertEq(
-      amountInWalletAfterDeposit,
-      amountInWalletBeforeDeposit - depositAmount
+      amountInWalletAfterWithdrawal,
+      amountInWalletBeforeWithdrawal + withdrawalAmount
     );
-    assertEq(allBalanceAfterDeposit, allBalanceBeforeDeposit + depositAmount);
+    assertEq(
+      allBalanceAfterWithdrawal,
+      allBalanceBeforeWithdrawal - withdrawalAmount
+    );
   }
 
-  function test_WhenDepositSuccessWithFuzzyAmount(uint256 _depositAmount)
+  function test_WhenWithdrawSuccessWithFuzzyAmount(uint256 _withdrawalAmount)
     external
   {
-    _depositAmount = bound(_depositAmount, 1e18, 10000e18);
+    _withdrawalAmount = bound(_withdrawalAmount, 1e18, 10000e18);
     string memory accountName = "Account 1";
 
-    (, uint256 accountInfoAmountBeforeDeposit) = nattaBank.accountInfo(
+    // Prepare test scenario:
+    // assuming the deposit function working properly
+    // Pretend to be Alice and deposit to the account
+    vm.startPrank(ALICE);
+    erc20Token.approve(address(nattaBank), 10000e18);
+    nattaBank.deposit(10000e18, accountName);
+    vm.stopPrank();
+
+    (, uint256 accountInfoAmountBeforeWithdrawal) = nattaBank.accountInfo(
       ALICE,
       0
     );
-    uint256 amountInWalletBeforeDeposit = erc20Token.balanceOf(ALICE);
-    uint256 allBalanceBeforeDeposit = nattaBank.allBalance();
+    uint256 amountInWalletBeforeWithdrawal = erc20Token.balanceOf(ALICE);
+    uint256 allBalanceBeforeWithdrawal = nattaBank.allBalance();
 
-    // Pretend to be Alice and deposit with fuzzy amount 1 - 10000 of Tokens
+    // Pretend to be Alice and withdraw with fuzzy amount 1 - 10000 Tokens
     vm.startPrank(ALICE);
-    erc20Token.approve(address(nattaBank), _depositAmount);
     vm.expectEmit(true, true, true, true);
-    emit Deposit(accountName, _depositAmount);
-    nattaBank.deposit(_depositAmount, accountName);
+    emit Withdraw(accountName, _withdrawalAmount);
+    nattaBank.withdraw(_withdrawalAmount, accountName);
     vm.stopPrank();
 
-    (, uint256 accountInfoAmountAfterDeposit) = nattaBank.accountInfo(ALICE, 0);
-    uint256 amountInWalletAfterDeposit = erc20Token.balanceOf(ALICE);
-    uint256 allBalanceAfterDeposit = nattaBank.allBalance();
+    (, uint256 accountInfoAmountAfterWithdrawal) = nattaBank.accountInfo(
+      ALICE,
+      0
+    );
+    uint256 amountInWalletAfterWithdrawal = erc20Token.balanceOf(ALICE);
+    uint256 allBalanceAfterWithdrawal = nattaBank.allBalance();
 
     assertEq(
-      accountInfoAmountAfterDeposit,
-      accountInfoAmountBeforeDeposit + _depositAmount
+      accountInfoAmountAfterWithdrawal,
+      accountInfoAmountBeforeWithdrawal - _withdrawalAmount
     );
     assertEq(
-      amountInWalletAfterDeposit,
-      amountInWalletBeforeDeposit - _depositAmount
+      amountInWalletAfterWithdrawal,
+      amountInWalletBeforeWithdrawal + _withdrawalAmount
     );
-    assertEq(allBalanceAfterDeposit, allBalanceBeforeDeposit + _depositAmount);
+    assertEq(
+      allBalanceAfterWithdrawal,
+      allBalanceBeforeWithdrawal - _withdrawalAmount
+    );
   }
 
-  function test_WhenDepositSuccess_WithMultipleAccounts() external {
-    // didn't set depositamount1 because it's stack too deep :(
-    uint256 depositAmount2 = 1000e18;
+  function test_WhenWithdrawSuccess_WithMultipleAccounts() external {
+    // didn't set withdrawalAmount1 because it's stack too deep :(
+    uint256 withdrawalAmount2 = 1000e18;
     string memory accountName1 = "Account 1";
     string memory accountName2 = "Account 2";
 
-    (, uint256 firstAccountInfoAmountBeforeDeposit) = nattaBank.accountInfo(
+    // Prepare test scenario:
+    // assuming the deposit function working properly
+    // Pretend to be Alice and deposit to the account1 and account2
+    vm.startPrank(ALICE);
+    erc20Token.approve(address(nattaBank), 6000e18);
+    nattaBank.deposit(6000e18, accountName1);
+    erc20Token.approve(address(nattaBank), 4000e18);
+    nattaBank.deposit(4000e18, accountName2);
+    vm.stopPrank();
+
+    (, uint256 firstAccountInfoAmountBeforeWithdrawal) = nattaBank.accountInfo(
       ALICE,
       0
     );
-    (, uint256 secondAccountInfoAmountBeforeDeposit) = nattaBank.accountInfo(
+    (, uint256 secondAccountInfoAmountBeforeWithdrawal) = nattaBank.accountInfo(
       ALICE,
       1
     );
-    uint256 amountInWalletBefore1stDeposit = erc20Token.balanceOf(ALICE);
-    uint256 allBalanceBeforeFirstDeposit = nattaBank.allBalance();
+    uint256 amountInWalletBefore1stWithdrawal = erc20Token.balanceOf(ALICE);
+    uint256 allBalanceBeforeFirstWithdrawal = nattaBank.allBalance();
 
-    // Pretend to be Alice and deposit first time with 500 amount of Tokens
+    // Pretend to be Alice and withdraw with 500 Tokens
     vm.startPrank(ALICE);
-    erc20Token.approve(address(nattaBank), 500e18);
     vm.expectEmit(true, true, true, true);
-    emit Deposit(accountName1, 500e18);
-    nattaBank.deposit(500e18, accountName1);
+    emit Withdraw(accountName1, 500e18);
+    nattaBank.withdraw(500e18, accountName1);
     vm.stopPrank();
 
-    (, uint256 firstAccountInfoAmountAfterDeposit) = nattaBank.accountInfo(
+    (, uint256 firstAccountInfoAmountAfterWithdrawal) = nattaBank.accountInfo(
       ALICE,
       0
     );
-    uint256 amountInWalletAfterDepositFirstAccount = erc20Token.balanceOf(
+    uint256 amountInWalletAfterWithdrawalFirstAccount = erc20Token.balanceOf(
       ALICE
     );
-    uint256 allBalanceAfterFirstDeposit = nattaBank.allBalance();
+    uint256 allBalanceAfterFirstWithdrawal = nattaBank.allBalance();
 
     assertEq(
-      firstAccountInfoAmountAfterDeposit,
-      firstAccountInfoAmountBeforeDeposit + 500e18
+      firstAccountInfoAmountAfterWithdrawal,
+      firstAccountInfoAmountBeforeWithdrawal - 500e18
     );
     assertEq(
-      amountInWalletAfterDepositFirstAccount,
-      amountInWalletBefore1stDeposit - 500e18
+      amountInWalletAfterWithdrawalFirstAccount,
+      amountInWalletBefore1stWithdrawal + 500e18
     );
     assertEq(
-      allBalanceAfterFirstDeposit,
-      allBalanceBeforeFirstDeposit + 500e18
+      allBalanceAfterFirstWithdrawal,
+      allBalanceBeforeFirstWithdrawal - 500e18
     );
 
-    // Pretend to be Alice and deposit first time with 1000 amount of Tokens
+    // Pretend to be Alice and withdraw with 1000 Tokens
     vm.startPrank(ALICE);
-    erc20Token.approve(address(nattaBank), depositAmount2);
     vm.expectEmit(true, true, true, true);
-    emit Deposit(accountName2, depositAmount2);
-    nattaBank.deposit(depositAmount2, accountName2);
+    emit Withdraw(accountName2, withdrawalAmount2);
+    nattaBank.withdraw(withdrawalAmount2, accountName2);
     vm.stopPrank();
 
-    (, uint256 secondAccountInfoAmountAfterDeposit) = nattaBank.accountInfo(
+    (, uint256 secondAccountInfoAmountAfterWithdrawal) = nattaBank.accountInfo(
       ALICE,
       1
     );
-    uint256 amountInWalletAfterDepositSecondAccount = erc20Token.balanceOf(
+    uint256 amountInWalletAfterWithdrawalSecondAccount = erc20Token.balanceOf(
       ALICE
     );
-    uint256 allBalanceAfterSecondDeposit = nattaBank.allBalance();
+    uint256 allBalanceAfterSecondWithdrawal = nattaBank.allBalance();
 
     assertEq(
-      secondAccountInfoAmountAfterDeposit,
-      secondAccountInfoAmountBeforeDeposit + depositAmount2
+      secondAccountInfoAmountAfterWithdrawal,
+      secondAccountInfoAmountBeforeWithdrawal - withdrawalAmount2
     );
     assertEq(
-      amountInWalletAfterDepositSecondAccount,
-      amountInWalletBefore1stDeposit - 500e18 - depositAmount2
+      amountInWalletAfterWithdrawalSecondAccount,
+      amountInWalletBefore1stWithdrawal + 500e18 + withdrawalAmount2
     );
     assertEq(
-      allBalanceAfterSecondDeposit,
-      allBalanceBeforeFirstDeposit + 500e18 + depositAmount2
+      allBalanceAfterSecondWithdrawal,
+      allBalanceBeforeFirstWithdrawal - 500e18 - withdrawalAmount2
     );
   }
 
   function test_WhenAmountIsInvalid() external {
     vm.startPrank(ALICE);
-    vm.expectRevert(NattaBank.NattaBank_InvalidDepositAmount.selector);
-    nattaBank.deposit(0, "Account 1");
+    // Alice can't withdraw because Alice didn't deposit any token
+    vm.expectRevert(NattaBank.NattaBank_InvalidWithdrawalAmount.selector);
+    nattaBank.withdraw(1000, "Account 1");
     vm.stopPrank();
   }
 }

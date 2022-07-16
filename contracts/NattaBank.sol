@@ -116,7 +116,7 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     accountInfo[msg.sender][accountId].amount -= _amount;
     allBalance -= _amount;
 
-    erc20Token.safeTransferFrom(address(this), msg.sender, _amount);
+    erc20Token.safeTransfer(msg.sender, _amount);
 
     emit Withdraw(_accountName, _amount);
   }
