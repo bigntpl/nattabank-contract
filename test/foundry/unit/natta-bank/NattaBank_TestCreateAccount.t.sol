@@ -13,10 +13,6 @@ contract NattaBank_TestCreateAccount is NattaBankBaseTest {
     super.setUp();
   }
 
-  function testExample() external {
-    assertTrue(true);
-  }
-
   function test_WhenCreateAccountSuccess() external {
     vm.startPrank(ALICE);
     string memory accountName = "Hello World";
