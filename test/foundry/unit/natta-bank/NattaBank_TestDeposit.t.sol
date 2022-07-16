@@ -170,7 +170,7 @@ contract NattaBank_TestDeposit is NattaBankBaseTest {
 
   function test_WhenAmountIsInvalid() external {
     vm.startPrank(ALICE);
-    vm.expectRevert(NattaBank.NattaBank_InvalidDepositingAmount.selector);
+    vm.expectRevert(NattaBank.NattaBank_InvalidDepositAmount.selector);
     nattaBank.deposit(0, "Account 1");
     vm.stopPrank();
   }
