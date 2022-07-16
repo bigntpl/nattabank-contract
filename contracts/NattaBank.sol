@@ -13,12 +13,14 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
 
   // dev errors
   error NattaBank_NoExistedAccountNameIsAllowed();
-  error NattaBank_InvalidDepositingAmount();
+  error NattaBank_InvalidDepositAmount();
+  error NattaBank_InvalidWithdrawalAmount();
   error NattaBank_AccountNameNotFound();
 
   // dev events
   event CreateAccount(address caller, string accountName);
   event Deposit(string accountName, uint256 amount);
+  event Withdraw(string accountName, uint256 amount);
 
   struct AccountInfo {
     string accountName;
@@ -87,7 +89,7 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     nonReentrant
   {
     if (_amount == 0) {
-      revert NattaBank_InvalidDepositingAmount();
+      revert NattaBank_InvalidDepositAmount();
     }
 
     uint256 accountId = getAccountId(_accountName);
@@ -99,7 +101,25 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     emit Deposit(_accountName, _amount);
   }
 
-  function withdraw() external {}
+  /// @dev function for withdraw token from bank account
+  /// @param _amount amount to withdraw
+  /// @param _accountName account name for withdrawing token
+  function withdraw(uint256 _amount, string calldata _accountName)
+    external
+    nonReentrant
+  {
+    uint256 accountId = getAccountId(_accountName);
+    if (_amount > accountInfo[msg.sender][accountId].amount || _amount == 0) {
+      revert NattaBank_InvalidWithdrawalAmount();
+    }
+
+    accountInfo[msg.sender][accountId].amount -= _amount;
+    allBalance -= _amount;
+
+    erc20Token.safeTransferFrom(address(this), msg.sender, _amount);
+
+    emit Withdraw(_accountName, _amount);
+  }
 
   function transferMultipleAcc() external {}
 }
