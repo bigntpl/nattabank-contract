@@ -11,20 +11,20 @@ contract NattaBank_TestInitialize is NattaBankBaseTest {
   }
 
   function test_WhenInitializeSuccess() external {
-    ntToken = _setupFakeERC20("NT Token", "NT");
+    erc20Token = _setupFakeERC20("ERC20 Token", "ERC20");
 
     NattaBank _impl = new NattaBank();
 
     TransparentUpgradeableProxy _proxy = new TransparentUpgradeableProxy(
       address(_impl),
       address(proxyAdmin),
-      abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), ntToken)
+      abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), erc20Token)
     );
     nattaBank = NattaBank(payable(_proxy));
 
-    assertEq(ntToken.name(), "NT Token");
-    assertEq(ntToken.symbol(), "NT");
+    assertEq(erc20Token.name(), "ERC20 Token");
+    assertEq(erc20Token.symbol(), "ERC20");
 
-    assertEq(address(nattaBank.NTToken()), address(ntToken));
+    assertEq(address(nattaBank.erc20Token()), address(erc20Token));
   }
 }

@@ -19,17 +19,17 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 amount;
   }
 
-  IERC20Upgradeable public NTToken;
+  IERC20Upgradeable public erc20Token;
   mapping(address => AccountInfo[]) public accountInfo;
 
   /// @notice Upgradeable's initialization function
-  function initialize(address _NTToken) external initializer {
+  function initialize(address _erc20Token) external initializer {
     // Initialize the contract.
     // This function is called by the constructor.
     OwnableUpgradeable.__Ownable_init();
     ReentrancyGuardUpgradeable.__ReentrancyGuard_init();
 
-    NTToken = IERC20Upgradeable(_NTToken);
+    erc20Token = IERC20Upgradeable(_erc20Token);
   }
 
   function getAccountLength() public view returns (uint256) {
@@ -51,7 +51,9 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     emit CreateAccount(msg.sender, _accountName);
   }
 
-  function deposit() external {}
+  function deposit(uint256 _amount) external {
+
+  }
 
   function withdraw() external {}
 

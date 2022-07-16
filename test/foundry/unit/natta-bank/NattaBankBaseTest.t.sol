@@ -8,24 +8,24 @@ import "../../../../contracts/NattaBank.sol";
 
 contract NattaBankBaseTest is BaseTest {
   NattaBank nattaBank;
-  MockERC20 internal ntToken;
+  MockERC20 internal erc20Token;
 
   /// @dev Foundry's setUp method
   function setUp() public virtual {
-    ntToken = _setupFakeERC20("NT", "Natta Token");
-    nattaBank = _setupNattaBank(address(ntToken));
+    erc20Token = _setupFakeERC20("NT", "Natta Token");
+    nattaBank = _setupNattaBank(address(erc20Token));
   }
 
   // █░█ ▀█▀ █ █░░ █▀
   // █▄█ ░█░ █ █▄▄ ▄█
 
-  function _setupNattaBank(address _NTToken) internal returns (NattaBank) {
+  function _setupNattaBank(address _erc20Token) internal returns (NattaBank) {
     NattaBank _impl = new NattaBank();
 
     TransparentUpgradeableProxy _proxy = new TransparentUpgradeableProxy(
       address(_impl),
       address(proxyAdmin),
-      abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _NTToken)
+      abi.encodeWithSelector(bytes4(keccak256("initialize(address)")), _erc20Token)
     );
 
     return NattaBank(payable(_proxy));
