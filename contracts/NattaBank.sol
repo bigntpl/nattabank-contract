@@ -27,9 +27,15 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 amount;
   }
 
+  struct AccountOwner {
+    address owner;
+  }
+
   IERC20Upgradeable public erc20Token;
   uint256 public allBalance;
   mapping(address => AccountInfo[]) public accountInfo;
+  // mapping(string => AccountOwner) public allAccountName;
+  string[] public allAccountName;
 
   /// @notice Upgradeable's initialization function
   /// @param _erc20Token address of ERC20 token
@@ -45,6 +51,10 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   /// @dev function for viewing length of accountInfo
   function getAccountLength() public view returns (uint256) {
     return accountInfo[msg.sender].length;
+  }
+
+  function getAllAccountNameLength() public view returns (uint256) {
+    return allAccountName.length;
   }
 
   /// @dev function for retrieve account Id for accountName given
@@ -67,13 +77,15 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   /// @dev function for creating bank account
   /// @param _accountName account name for creating bank account
   function createAccount(string calldata _accountName) external {
-    for (uint8 i = 0; i < getAccountLength(); i++) {
-      string memory accountName = accountInfo[msg.sender][i].accountName;
+    for (uint8 i = 0; i < getAllAccountNameLength(); i++) {
+      // string memory accountName = accountInfo[msg.sender][i].accountName;
+      string memory accountName = allAccountName[i];
       if (keccak256(bytes(accountName)) == keccak256(bytes(_accountName))) {
         revert NattaBank_NoExistedAccountNameIsAllowed();
       }
     }
 
+    allAccountName.push(_accountName);
     accountInfo[msg.sender].push(
       AccountInfo({ accountName: _accountName, amount: 0 })
     );
