@@ -10,9 +10,9 @@ import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 
 contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   // dev errors
-
+  error NattaBank_NoExistedAccountNameIsAllowed();
   // dev events
-  event CreateAccount(string accountName);
+  event CreateAccount(address caller, string accountName);
 
   struct AccountInfo {
     string accountName;
@@ -20,7 +20,7 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   }
 
   IERC20Upgradeable public NTToken;
-  mapping(address => mapping(string => AccountInfo)) public accountInfo;
+  mapping(address => AccountInfo[]) public accountInfo;
 
   /// @notice Upgradeable's initialization function
   function initialize(address _NTToken) external initializer {
@@ -32,13 +32,23 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     NTToken = IERC20Upgradeable(_NTToken);
   }
 
-  function createAccount(string memory _accountName) external {
-    accountInfo[msg.sender][_accountName] = AccountInfo({
-      accountName: _accountName,
-      amount: 0
-    });
+  function getAccountLength() public view returns (uint256) {
+    return accountInfo[msg.sender].length;
+  }
 
-    emit CreateAccount(_accountName);
+  function createAccount(string memory _accountName) external {
+    for (uint8 i = 0; i < getAccountLength(); i++) {
+      string memory accountName = accountInfo[msg.sender][i].accountName;
+      if (keccak256(bytes(accountName)) == keccak256(bytes(_accountName))) {
+        revert NattaBank_NoExistedAccountNameIsAllowed();
+      }
+    }
+
+    accountInfo[msg.sender].push(
+      AccountInfo({ accountName: _accountName, amount: 0 })
+    );
+
+    emit CreateAccount(msg.sender, _accountName);
   }
 
   function deposit() external {}
