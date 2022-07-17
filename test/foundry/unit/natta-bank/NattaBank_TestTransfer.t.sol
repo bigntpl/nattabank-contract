@@ -113,10 +113,16 @@ contract NattaBank_TestTransfer is NattaBankBaseTest {
     uint256 platformFeeBeforeUserTransfer = nattaBank.platformFee();
 
     vm.startPrank(ALICE);
-    (address ownerAddress, ) = nattaBank.findOwnerOfAccount(transferToAccountName);
+    (address ownerAddress, ) = nattaBank.findOwnerOfAccount(
+      transferToAccountName
+    );
     vm.expectEmit(true, true, true, true);
     emit Transfer(ownerAddress, transferToAccountName, transferAmount);
-    nattaBank.transfer(transferFromAccountName, transferToAccountName, transferAmount);
+    nattaBank.transfer(
+      transferFromAccountName,
+      transferToAccountName,
+      transferAmount
+    );
     vm.stopPrank();
 
     (, uint256 aliceAccountInfo1AmountAfterTransfer) = nattaBank.accountInfo(
@@ -139,5 +145,12 @@ contract NattaBank_TestTransfer is NattaBankBaseTest {
     );
     // This one should be the same since Alice transfer to her own account
     assertEq(platformFeeAfterUserTransfer, platformFeeBeforeUserTransfer);
+  }
+
+  function test_WhenTransferToNonexistedAccount() external {
+    vm.startPrank(ALICE);
+    vm.expectRevert(NattaBank.NattaBank_AccountNameNotFound.selector);
+    nattaBank.transfer("ALICE 1", "Nattapon", 1e18);
+    vm.stopPrank();
   }
 }
