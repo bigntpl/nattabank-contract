@@ -1,13 +1,11 @@
-# Sample Hardhat Project
+### For Contract
+- install foundry ref https://book.getfoundry.sh/getting-started/installation
+- `yarn install`
+- `foundryup`
+- `yarn compile`
+- `yarn test:foundry`
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-GAS_REPORT=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
-```
+### For interface
+- `yarn install`
+- `yarn start`
+- go to `localhost:3000`
