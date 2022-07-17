@@ -6,21 +6,24 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
+import "../lib/solmate/src/utils/FixedPointMathLib.sol";
 
 contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
+  using FixedPointMathLib for uint256;
 
   // dev errors
   error NattaBank_NoExistedAccountNameIsAllowed();
   error NattaBank_InvalidDepositAmount();
   error NattaBank_InvalidWithdrawalAmount();
   error NattaBank_AccountNameNotFound();
+  error NattaBank_InsufficientAmountToBeTransferred();
 
   // dev events
   event CreateAccount(address caller, string accountName);
   event Deposit(string accountName, uint256 amount);
   event Withdraw(string accountName, uint256 amount);
+  event Transfer(address to, string accountName, uint256 amount);
 
   struct AccountInfo {
     string accountName;
@@ -30,6 +33,9 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   IERC20Upgradeable public erc20Token;
   uint256 public allBalance;
   mapping(address => AccountInfo[]) public accountInfo;
+  string[] public allAccountNames;
+  address[] public allUsers;
+  uint256 public platformFee;
 
   /// @notice Upgradeable's initialization function
   /// @param _erc20Token address of ERC20 token
@@ -64,16 +70,45 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     revert NattaBank_AccountNameNotFound();
   }
 
+  function findOwnerOfAccount(string calldata _accountName)
+    public
+    view
+    returns (address, uint256)
+  {
+    for (uint256 i = 0; i < allUsers.length; i++) {
+      for (uint256 j = 0; j < accountInfo[allUsers[i]].length; j++) {
+        string memory accountFromAddress = accountInfo[allUsers[i]][j]
+          .accountName;
+        if (
+          keccak256(bytes(accountFromAddress)) == keccak256(bytes(_accountName))
+        ) {
+          return (allUsers[i], j);
+        }
+      }
+    }
+    revert NattaBank_AccountNameNotFound();
+  }
+
   /// @dev function for creating bank account
   /// @param _accountName account name for creating bank account
   function createAccount(string calldata _accountName) external {
-    for (uint8 i = 0; i < getAccountLength(); i++) {
-      string memory accountName = accountInfo[msg.sender][i].accountName;
+    // - CHECK -
+    for (uint8 i = 0; i < allAccountNames.length; i++) {
+      string memory accountName = allAccountNames[i];
       if (keccak256(bytes(accountName)) == keccak256(bytes(_accountName))) {
         revert NattaBank_NoExistedAccountNameIsAllowed();
       }
     }
 
+    // - EFFECT -
+    for (uint8 i = 0; i < allAccountNames.length; i++) {
+      if (
+        keccak256(bytes(allAccountNames[i])) != keccak256(bytes(_accountName))
+      ) {
+        allUsers.push(msg.sender);
+      }
+    }
+    allAccountNames.push(_accountName);
     accountInfo[msg.sender].push(
       AccountInfo({ accountName: _accountName, amount: 0 })
     );
@@ -88,14 +123,17 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     external
     nonReentrant
   {
+    // - CHECK -
     if (_amount == 0) {
       revert NattaBank_InvalidDepositAmount();
     }
 
+    // - EFFECT -
     uint256 accountId = getAccountId(_accountName);
     accountInfo[msg.sender][accountId].amount += _amount;
     allBalance += _amount;
 
+    // - INTERACTION -
     erc20Token.safeTransferFrom(msg.sender, address(this), _amount);
 
     emit Deposit(_accountName, _amount);
@@ -108,18 +146,46 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     external
     nonReentrant
   {
+    // - CHECK -
     uint256 accountId = getAccountId(_accountName);
     if (_amount > accountInfo[msg.sender][accountId].amount || _amount == 0) {
       revert NattaBank_InvalidWithdrawalAmount();
     }
 
+    // - EFFECT -
     accountInfo[msg.sender][accountId].amount -= _amount;
     allBalance -= _amount;
 
+    // - INTERACTION -
     erc20Token.safeTransfer(msg.sender, _amount);
 
     emit Withdraw(_accountName, _amount);
   }
 
-  function transferMultipleAcc() external {}
+  function transfer(
+    string calldata _from,
+    string calldata _to,
+    uint256 _amount
+  ) external {
+    // - CHECK -
+    uint256 fromAccountId = getAccountId(_from);
+    if (_amount > accountInfo[msg.sender][fromAccountId].amount) {
+      revert NattaBank_InsufficientAmountToBeTransferred();
+    }
+
+    // - EFFECT -
+    accountInfo[msg.sender][fromAccountId].amount -= _amount;
+
+    uint256 feeAmount;
+    (address ownerAddress, uint256 toAccountId) = findOwnerOfAccount(_to);
+    if (ownerAddress != msg.sender) {
+      feeAmount = _amount.mulWadDown(1e16);
+      _amount = _amount - feeAmount;
+    }
+
+    accountInfo[ownerAddress][toAccountId].amount += _amount;
+    platformFee += feeAmount;
+
+    emit Transfer(ownerAddress, _to, _amount);
+  }
 }

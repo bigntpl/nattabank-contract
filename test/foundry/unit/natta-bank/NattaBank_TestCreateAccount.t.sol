@@ -13,10 +13,6 @@ contract NattaBank_TestCreateAccount is NattaBankBaseTest {
     super.setUp();
   }
 
-  function testExample() external {
-    assertTrue(true);
-  }
-
   function test_WhenCreateAccountSuccess() external {
     vm.startPrank(ALICE);
     string memory accountName = "Hello World";
@@ -59,6 +55,51 @@ contract NattaBank_TestCreateAccount is NattaBankBaseTest {
     string memory accountName1 = "Hello World";
     string memory accountName2 = "Hello World";
     nattaBank.createAccount(accountName1);
+    vm.expectRevert(NattaBank.NattaBank_NoExistedAccountNameIsAllowed.selector);
+    nattaBank.createAccount(accountName2);
+    vm.stopPrank();
+  }
+
+  function test_WhenMultipleUserCreateAccount() external {
+    string memory accountName1 = "Alice Account";
+    string memory accountName2 = "Bob Account";
+
+    vm.startPrank(ALICE);
+    vm.expectEmit(true, true, true, true);
+    emit CreateAccount(ALICE, accountName1);
+    nattaBank.createAccount(accountName1);
+
+    (string memory _accName1, ) = nattaBank.accountInfo(ALICE, 0);
+    assertEq(accountName1, _accName1);
+    assertEq(1, nattaBank.getAccountLength());
+    vm.stopPrank();
+
+    vm.startPrank(BOB);
+    vm.expectEmit(true, true, true, true);
+    emit CreateAccount(BOB, accountName2);
+    nattaBank.createAccount(accountName2);
+
+    (string memory _accName2, ) = nattaBank.accountInfo(BOB, 0);
+    assertEq(accountName2, _accName2);
+    assertEq(1, nattaBank.getAccountLength());
+    vm.stopPrank();
+  }
+
+  function test_WhenMultipleUsersCreateTheSameAccountName() external {
+    string memory accountName1 = "Alice Account";
+    string memory accountName2 = "Alice Account";
+
+    vm.startPrank(ALICE);
+    vm.expectEmit(true, true, true, true);
+    emit CreateAccount(ALICE, accountName1);
+    nattaBank.createAccount(accountName1);
+
+    (string memory _accName1, ) = nattaBank.accountInfo(ALICE, 0);
+    assertEq(accountName1, _accName1);
+    assertEq(1, nattaBank.getAccountLength());
+    vm.stopPrank();
+
+    vm.startPrank(BOB);
     vm.expectRevert(NattaBank.NattaBank_NoExistedAccountNameIsAllowed.selector);
     nattaBank.createAccount(accountName2);
     vm.stopPrank();

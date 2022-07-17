@@ -52,6 +52,18 @@ contract NattaBankBaseTest is BaseTest {
     return MockERC20(payable(_proxy));
   }
 
+  function _createAccountHelper(string memory _baseName, uint256 _accountAmount)
+    internal
+  {
+    // Helper function for creating a new account
+    // account i: name = Account i + 1
+    string[] memory accountName = new string[](_accountAmount);
+    for (uint8 i = 0; i < _accountAmount; i++) {
+      accountName[i] = string.concat(_baseName, " ", Strings.toString(i + 1));
+      nattaBank.createAccount(accountName[i]);
+    }
+  }
+
   function _createAccountHelper(uint256 _accountAmount) internal {
     // Helper function for creating a new account
     // account i: name = Account i + 1
