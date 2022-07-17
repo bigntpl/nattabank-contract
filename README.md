@@ -2,7 +2,7 @@
 - install foundry ref https://book.getfoundry.sh/getting-started/installation
 - `yarn install`
 - `foundryup`
-- `yarn compile`
+- `forge install`
 - `yarn test:foundry`
 
 ### For interface
