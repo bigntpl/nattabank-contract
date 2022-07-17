@@ -37,6 +37,7 @@
     "prepublishOnly": "yarn compile; yarn build:l1",
     "copy-dts-typechain": "npx copyfiles -u 1 \"typechain/**/*.d.ts\" compiled-typechain",
     "build": "tsc -p tsconfig.cjs.json; yarn copy-dts-typechain",
-    "compile": "rm -rf  artifacts/ typechain/ compiled-typechain/ out/; yarn hardhat typechain --config hardhat.config.ts"
+    "compile": "rm -rf  artifacts/ typechain/ compiled-typechain/ out/; yarn hardhat typechain --config hardhat.config.ts",
+    "test:foundry": "forge test -vvvv"
   }
 }
