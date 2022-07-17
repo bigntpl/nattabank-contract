@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "../lib/solmate/src/utils/FixedPointMathLib.sol";
+import "forge-std/Test.sol";
 
 contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -18,6 +19,7 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
   error NattaBank_InvalidWithdrawalAmount();
   error NattaBank_AccountNameNotFound();
   error NattaBank_InsufficientAmountToBeTransferred();
+  error NattaBank_NotTheOwnerOfAccount();
 
   // dev events
   event CreateAccount(address caller, string accountName);
@@ -168,7 +170,10 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     uint256 _amount
   ) external {
     // - CHECK -
-    uint256 fromAccountId = getAccountId(_from);
+    (address ownerAddress, uint256 fromAccountId) = findOwnerOfAccount(_from);
+    if (msg.sender != ownerAddress) {
+      revert NattaBank_NotTheOwnerOfAccount();
+    }
     if (_amount > accountInfo[msg.sender][fromAccountId].amount) {
       revert NattaBank_InsufficientAmountToBeTransferred();
     }
@@ -177,15 +182,15 @@ contract NattaBank is OwnableUpgradeable, ReentrancyGuardUpgradeable {
     accountInfo[msg.sender][fromAccountId].amount -= _amount;
 
     uint256 feeAmount;
-    (address ownerAddress, uint256 toAccountId) = findOwnerOfAccount(_to);
-    if (ownerAddress != msg.sender) {
+    (address receiverAddress, uint256 toAccountId) = findOwnerOfAccount(_to);
+    if (receiverAddress != msg.sender) {
       feeAmount = _amount.mulWadDown(1e16);
       _amount = _amount - feeAmount;
     }
 
-    accountInfo[ownerAddress][toAccountId].amount += _amount;
+    accountInfo[receiverAddress][toAccountId].amount += _amount;
     platformFee += feeAmount;
 
-    emit Transfer(ownerAddress, _to, _amount);
+    emit Transfer(receiverAddress, _to, _amount);
   }
 }

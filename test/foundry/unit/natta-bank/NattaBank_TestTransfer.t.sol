@@ -153,4 +153,18 @@ contract NattaBank_TestTransfer is NattaBankBaseTest {
     nattaBank.transfer("ALICE 1", "Nattapon", 1e18);
     vm.stopPrank();
   }
+
+  function test_WhenTransferFromNonexistedAccount() external {
+    vm.startPrank(ALICE);
+    vm.expectRevert(NattaBank.NattaBank_AccountNameNotFound.selector);
+    nattaBank.transfer("Nattapon", "Alice 1", 1e18);
+    vm.stopPrank();
+  }
+
+  function test_WhenCallerIsNotTheOwnerOfAccount() external {
+    vm.startPrank(ALICE);
+    vm.expectRevert(NattaBank.NattaBank_NotTheOwnerOfAccount.selector);
+    nattaBank.transfer("Bob 1", "Alice 1", 1e18);
+    vm.stopPrank();
+  }
 }
